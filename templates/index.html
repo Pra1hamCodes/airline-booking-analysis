@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airline Market Demand Analysis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.18.0/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .filters h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #34495e;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            min-height: 400px;
+            margin-top: 20px;
+        }
+
+        .insights-card {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .insights-content {
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .insights-content h4 {
+            color: #2c3e50;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .insights-content strong {
+            color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✈️ Airline Market Demand Analysis</h1>
+            <p>Comprehensive insights into airline booking trends for Australian hostel operators</p>
+            <button id="refreshData" class="btn">🔄 Refresh Data</button>
+        </div>
+
+        <div class="filters">
+            <h3>🔍 Filter Data</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="origin">Origin City:</label>
+                    <select id="origin">
+                        <option value="">All Cities</option>
+                        <option value="Sydney">Sydney</option>
+                        <option value="Melbourne">Melbourne</option>
+                        <option value="Brisbane">Brisbane</option>
+                        <option value="Perth">Perth</option>
+                        <option value="Adelaide">Adelaide</option>
+                        <option value="Darwin">Darwin</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="destination">Destination City:</label>
+                    <select id="destination">
+                        <option value="">All Cities</option>
+                        <option value="Sydney">Sydney</option>
+                        <option value="Melbourne">Melbourne</option>
+                        <option value="Brisbane">Brisbane</option>
+                        <option value="Perth">Perth</option>
+                        <option value="Adelaide">Adelaide</option>
+                        <option value="Darwin">Darwin</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="dateFrom">Date From:</label>
+                    <input type="date" id="dateFrom">
+                </div>
+                <div class="filter-group">
+                    <label for="dateTo">Date To:</label>
+                    <input type="date" id="dateTo">
+                </div>
+            </div>
+            <button id="applyFilters" class="btn">Apply Filters</button>
+        </div>
+
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalFlights">0</div>
+                <div class="stat-label">Total Flights</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgPrice">$0</div>
+                <div class="stat-label">Average Price</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="peakDemand">0</div>
+                <div class="stat-label">Peak Demand Score</div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>📊 Popular Routes</h3>
+                <div id="popularRoutesChart" class="chart-container"></div>
+                <div class="table-container">
+                    <table class="data-table" id="popularRoutesTable">
+                        <thead>
+                            <tr>
+                                <th>Route</th>
+                                <th>Avg Price</th>
+                                <th>Demand Score</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>💰 Price Trends</h3>
+                <div id="priceTrendsChart" class="chart-container"></div>
+            </div>
+
+            <div class="card">
+                <h3>🏢 Airline Comparison</h3>
+                <div id="airlineChart" class="chart-container"></div>
+                <div class="table-container">
+                    <table class="data-table" id="airlineTable">
+                        <thead>
+                            <tr>
+                                <th>Airline</th>
+                                <th>Avg Price</th>
+                                <th>Demand Score</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📈 Demand Periods</h3>
+                <div class="table-container">
+                    <table class="data-table" id="demandPeriodsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Demand Score</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="insights-card">
+            <h3>🤖 AI-Powered Market Insights</h3>
+            <div id="aiInsights" class="insights-content loading">
+                Loading AI insights...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AirlineAnalyzer {
+            constructor() {
+                this.currentData = null;
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.loadData();
+            }
+
+            bindEvents() {
+                document.getElementById('refreshData').addEventListener('click', () => {
+                    this.loadData();
+                });
+
+                document.getElementById('applyFilters').addEventListener('click', () => {
+                    this.applyFilters();
+                });
+            }
+
+            async loadData() {
+                try {
+                    this.showLoading();
+                    const response = await axios.get('/api/data');
+                    
+                    if (response.data.success) {
+                        this.currentData = response.data;
+                        this.updateDashboard(response.data);
+                    } else {
+                        this.showError('Failed to load data');
+                    }
+                } catch (error) {
+                    this.showError('Error loading data: ' + error.message);
+                }
+            }
+
+            async applyFilters() {
+                try {
+                    this.showLoading();
+                    const params = new URLSearchParams();
+                    
+                    const origin = document.getElementById('origin').value;
+                    const destination = document.getElementById('destination').value;
+                    const dateFrom = document.getElementById('dateFrom').value;
+                    const dateTo = document.getElementById('dateTo').value;
+
+                    if (origin) params.append('origin', origin);
+                    if (destination) params.append('destination', destination);
+                    if (dateFrom) params.append('date_from', dateFrom);
+                    if (dateTo) params.append('date_to', dateTo);
+
+                    const response = await axios.get(`/api/filter?${params}`);
+                    
+                    if (response.data.success) {
+                        this.currentData = response.data;
+                        this.updateDashboard(response.data);
+                    } else {
+                        this.showError('Failed to apply filters');
+                    }
+                } catch (error) {
+                    this.showError('Error applying filters: ' + error.message);
+                }
+            }
+
+            updateDashboard(data) {
+                this.hideError();
+                this.updateStats(data.insights);
+                this.updateCharts(data.charts);
+                this.updateTables(data.insights);
+                this.updateInsights(data.ai_insights);
+            }
+
+            updateStats(insights) {
+                document.getElementById('totalFlights').textContent = insights.total_flights || 0;
+                document.getElementById('avgPrice').textContent = `$${(insights.avg_price || 0).toFixed(0)}`;
+                document.getElementById('peakDemand').textContent = (insights.peak_demand_score || 0).toFixed(2);
+            }
+
+            updateCharts(charts) {
+                if (charts.popular_routes) {
+                    Plotly.newPlot('popularRoutesChart', JSON.parse(charts.popular_routes));
+                }
+                if (charts.price_trends) {
+                    Plotly.newPlot('priceTrendsChart', JSON.parse(charts.price_trends));
+                }
+                if (charts.airline_comparison) {
+                    Plotly.newPlot('airlineChart', JSON.parse(charts.airline_comparison));
+                }
+            }
+
+            updateTables(insights) {
+                // Update popular routes table
+                const routesTable = document.getElementById('popularRoutesTable').querySelector('tbody');
+                routesTable.innerHTML = '';
+                
+                if (insights.popular_routes) {
+                    insights.popular_routes.slice(0, 10).forEach(route => {
+                        const row = routesTable.insertRow();
+                        row.insertCell(0).textContent = route.route;
+                        row.insertCell(1).textContent = `${route.price.toFixed(0)}`;
+                        row.insertCell(2).textContent = route.demand_score.toFixed(2);
+                    });
+                }
+
+                // Update airline table
+                const airlineTable = document.getElementById('airlineTable').querySelector('tbody');
+                airlineTable.innerHTML = '';
+                
+                if (insights.airline_stats) {
+                    insights.airline_stats.forEach(airline => {
+                        const row = airlineTable.insertRow();
+                        row.insertCell(0).textContent = airline.airline;
+                        row.insertCell(1).textContent = `${airline.price.toFixed(0)}`;
+                        row.insertCell(2).textContent = airline.demand_score.toFixed(2);
+                    });
+                }
+
+                // Update demand periods table
+                const demandTable = document.getElementById('demandPeriodsTable').querySelector('tbody');
+                demandTable.innerHTML = '';
+                
+                if (insights.demand_periods) {
+                    insights.demand_periods.forEach(period => {
+                        const row = demandTable.insertRow();
+                        row.insertCell(0).textContent = new Date(period.date).toLocaleDateString();
+                        row.insertCell(1).textContent = period.demand_score.toFixed(2);
+                    });
+                }
+            }
+
+            updateInsights(aiInsights) {
+                const insightsDiv = document.getElementById('aiInsights');
+                insightsDiv.innerHTML = this.formatInsights(aiInsights);
+            }
+
+            formatInsights(insights) {
+                if (!insights) return "<em>No insights available.</em>";
+                // Convert markdown-style formatting to HTML
+                return insights
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>')
+                    .replace(/^/, '<p>')
+                    .replace(/$/, '</p>');
+            }
+
+            showLoading() {
+                const elements = ['popularRoutesChart', 'priceTrendsChart', 'airlineChart', 'aiInsights'];
+                elements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.innerHTML = '<div class="loading">Loading data...</div>';
+                    }
+                });
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+
+            hideError() {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new AirlineAnalyzer();
+        });
+    </script>
+</body>
+</html>

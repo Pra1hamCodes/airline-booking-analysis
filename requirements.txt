@@ -1,0 +1,9 @@
+# requirements.txt
+Flask==2.3.3
+requests==2.31.0
+pandas==2.0.3
+beautifulsoup4==4.12.2
+plotly==5.15.0
+python-dotenv==1.0.0
+gunicorn==21.2.0
+lxml==4.9.3
