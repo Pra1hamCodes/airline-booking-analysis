@@ -1,0 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+
+* { cursor: none; }
+a, button, select, input, textarea, [role="button"] { cursor: none; }
+
+html, body { background: #0A0F1E; color: #fff; }
+body {
+  font-family: Inter, system-ui, sans-serif;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(45,126,247,0.08), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(34,211,238,0.06), transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(217,70,239,0.05), transparent 45%);
+  background-attachment: fixed;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0A0F1E; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#2D7EF7,#22D3EE); border-radius: 10px; }
+
+/* Selection */
+::selection { background: rgba(45,126,247,0.35); color: #fff; }
+
+@layer components {
+  .card {
+    @apply relative rounded-2xl p-6 border border-white/5 bg-white/[0.03] backdrop-blur-xl;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .card-hover { @apply transition duration-300 hover:border-primary/30 hover:-translate-y-0.5; }
+  .glass { @apply bg-white/[0.04] backdrop-blur-xl border border-white/10; }
+
+  .btn { @apply px-4 py-2 rounded-xl font-medium transition relative overflow-hidden; }
+  .btn-primary {
+    @apply btn text-white;
+    background: linear-gradient(110deg, #2D7EF7 0%, #22D3EE 50%, #2D7EF7 100%);
+    background-size: 200% 100%;
+    box-shadow: 0 10px 30px -10px rgba(45,126,247,0.6);
+  }
+  .btn-primary:hover { animation: shimmer 2s linear infinite; }
+  .btn-ghost { @apply btn border border-white/15 hover:bg-white/5 hover:border-white/30 text-white; }
+
+  .input {
+    @apply bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2 text-white outline-none backdrop-blur-xl transition;
+  }
+  .input:focus { @apply border-primary; box-shadow: 0 0 0 3px rgba(45,126,247,0.15); }
+
+  .gradient-text {
+    background: linear-gradient(110deg,#2D7EF7,#22D3EE 40%,#D946EF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .ring-glow { box-shadow: 0 0 0 1px rgba(45,126,247,0.4), 0 0 40px -5px rgba(45,126,247,0.35); }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+}
